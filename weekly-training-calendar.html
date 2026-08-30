@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiet Week — Training Calendar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #14140F;
+    --card: #1C1D16;
+    --line: #34352C;
+    --ink: #EDEAE0;
+    --ink-dim: #A6A497;
+    --ink-faint: #6E6D62;
+    --legs: #9CAD6E;
+    --upper: #6E93AD;
+    --mobility: #C98A3D;
+    --rest: #5B5B52;
+  }
+  *{ box-sizing: border-box; margin:0; padding:0; }
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    padding: 40px 24px 64px;
+    min-height: 100vh;
+  }
+  .wrap{ max-width: 100%; margin: 0; }
+
+  header{
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end;
+    gap: 24px; padding-bottom: 28px; border-bottom: 1px solid var(--line); margin-bottom: 36px;
+  }
+  .eyebrow{
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 10px;
+  }
+  h1{
+    font-family: 'Big Shoulders Display', sans-serif; font-weight: 800;
+    font-size: clamp(40px, 6vw, 68px); line-height: 0.92; letter-spacing: -0.01em; text-transform: uppercase;
+  }
+  .sub{ color: var(--ink-dim); font-size: 14.5px; max-width: 320px; line-height: 1.5; }
+
+  .legend{
+    display: flex; gap: 18px; flex-wrap: wrap; font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-dim);
+  }
+  .legend span{ display:flex; align-items:center; gap:7px; }
+  .dot{ width:8px; height:8px; border-radius:50%; display:inline-block; }
+
+  .week{
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 14px;
+  }
+  @media (max-width: 980px){ .week{ grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 620px){ .week{ grid-template-columns: 1fr; } }
+
+  .day{
+    background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--accent, var(--line));
+    border-radius: 3px; padding: 20px 16px 18px; display: flex; flex-direction: column; gap: 14px;
+  }
+  .day-top{ display: flex; justify-content: space-between; align-items: flex-start; }
+  .day-id{
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em;
+    color: var(--ink-faint); text-transform: uppercase;
+  }
+  .focus{
+    font-family: 'Big Shoulders Display', sans-serif; font-weight: 700; font-size: 19px;
+    text-transform: uppercase; letter-spacing: 0.01em; color: var(--accent, var(--ink));
+  }
+  .dial{ flex-shrink: 0; }
+  .dial text{ font-family: 'IBM Plex Mono', monospace; fill: var(--ink); }
+
+  .block-label{
+    font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 4px;
+  }
+  .seg-label{
+    font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--mobility); display:flex; justify-content:space-between;
+    margin-top: 8px; margin-bottom: 2px;
+  }
+  .seg-label:first-child{ margin-top: 0; }
+
+  .list{ display:flex; flex-direction:column; }
+
+  .row{
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 0; border-bottom: 1px solid var(--line);
+  }
+  .row:last-child{ border-bottom: none; }
+  .row-main{
+    flex: 1; min-width: 0; display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .row-name{ font-size: 12.5px; color: var(--ink); line-height:1.3; }
+  .row.stretch .row-name{ color: var(--ink-dim); }
+  .row-val{
+    font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--ink-dim); white-space: nowrap;
+  }
+  .row.stretch .row-val{ color: var(--ink-faint); }
+
+  .vid-col{ width: 30px; flex-shrink: 0; display: flex; justify-content: center; }
+  .vid{
+    display: flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 6px;
+    background: rgba(255,255,255,0.05); color: var(--ink-faint);
+    transition: background .15s ease, color .15s ease;
+  }
+  .vid svg{ width: 12px; height: 12px; }
+  .vid:hover, .vid:focus-visible{ background: var(--accent, var(--ink-faint)); color: var(--bg); }
+  .vid:focus-visible{ outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  .divider{ height: 1px; background: var(--line); margin: 2px 0; }
+
+  .day-total{
+    margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--ink-faint);
+  }
+  .day-total b{ color: var(--ink); font-size: 12.5px; }
+
+  .weekend{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 4px; }
+  @media (max-width: 620px){ .weekend{ grid-template-columns: 1fr; } }
+  .rest-card{
+    border: 1px dashed var(--line); border-radius: 3px; padding: 16px 18px;
+    display: flex; justify-content: space-between; align-items: center; color: var(--ink-faint);
+  }
+  .rest-card .day-id{ color: var(--ink-faint); }
+  .rest-card .focus{ color: var(--rest); font-size: 16px; }
+
+  .notes{
+    margin-top: 44px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px;
+  }
+  @media (max-width: 780px){ .notes{ grid-template-columns: 1fr; } }
+  .note h3{
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--legs); margin-bottom: 8px;
+  }
+  .note p{ font-size: 13px; line-height: 1.6; color: var(--ink-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <div class="eyebrow">Training Log — Week View</div>
+      <h1>Quiet Week</h1>
+      <p class="sub">Bodyweight strength, legs-forward, zero jump noise. Stretch blocks matched to each session, mobility mid-week.</p>
+    </div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--legs)"></i>Legs</span>
+      <span><i class="dot" style="background:var(--upper)"></i>Upper / Core</span>
+      <span><i class="dot" style="background:var(--mobility)"></i>Mobility</span>
+      <span><i class="dot" style="background:var(--rest)"></i>Rest</span>
+    </div>
+  </header>
+
+  <div class="week">
+
+    <!-- MONDAY -->
+    <div class="day" style="--accent:var(--legs)">
+      <div class="day-top">
+        <div>
+          <div class="day-id">Mon — 01</div>
+          <div class="focus">Legs A</div>
+        </div>
+        <svg class="dial" width="52" height="52" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="28" fill="none" stroke="var(--line)" stroke-width="4"/>
+          <circle cx="32" cy="32" r="28" fill="none" stroke="var(--legs)" stroke-width="4" stroke-linecap="round"
+            stroke-dasharray="146.6 175.9" transform="rotate(-90 32 32)"/>
+          <text x="32" y="30" font-size="13" text-anchor="middle" font-weight="600">50</text>
+          <text x="32" y="41" font-size="8" text-anchor="middle" fill="var(--ink-faint)">MIN</text>
+        </svg>
+      </div>
+
+      <div>
+        <div class="block-label">Warm-up — 5 min</div>
+        <div class="list">
+          <div class="row"><div class="row-main"><span class="row-name">March in place / high knees</span><span class="row-val">1 min</span></div><div class="vid-col"><a class="vid" href="https://youtu.be/XrOxOD913yM" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Leg swings, front + side</span><span class="row-val">10/leg</span></div><div class="vid-col"><a class="vid" href="https://youtu.be/naW8u72lOzI" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Hip circles</span><span class="row-val">10 ea. dir.</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/PZFKu9583Ms" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Bodyweight squats</span><span class="row-val">x10</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/I7Nk1RMtcLs" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Glute bridges</span><span class="row-val">x10</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/RrU4zx4ysnI" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div>
+        <div class="block-label">Main</div>
+        <div class="list">
+          <div class="row"><div class="row-main"><span class="row-name">Slow-tempo squats</span><span class="row-val">4x12</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/ynGMRGkozU4" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Bulgarian split squat</span><span class="row-val">3x10-12/leg</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/uBSoEWZu07k" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Wall sit</span><span class="row-val">3x45-60s</span></div><div class="vid-col"><a class="vid" href="https://youtu.be/RG7z0P9qrLk" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Single-leg glute bridge</span><span class="row-val">3x12-15/leg</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/n1IZ168x2Bw" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Calf raise, single-leg</span><span class="row-val">3x15-20/leg</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/PJGXyldAWk4" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div>
+        <div class="block-label">Stretch — 6-8 min</div>
+        <div class="list">
+          <div class="row stretch"><div class="row-main"><span class="row-name">Standing quad</span><span class="row-val">30-45s x2</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/aNXGOpP37CY" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row stretch"><div class="row-main"><span class="row-name">Hamstring stretch</span><span class="row-val">30-45s x2</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/Oic0YR6HW-o" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row stretch"><div class="row-main"><span class="row-name">Hip flexor lunge</span><span class="row-val">30-45s x2</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/7lGIfjasuNo" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row stretch"><div class="row-main"><span class="row-name">Pigeon pose</span><span class="row-val">30-45s x2</span></div><div class="vid-col"><a class="vid" href="https://youtu.be/1o7awuDGzag" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row stretch"><div class="row-main"><span class="row-name">Calf stretch</span><span class="row-val">30-45s x2</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/7SO6QzfBRaE" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+        </div>
+      </div>
+
+      <div class="day-total"><span>Total</span><b>~46–53 min</b></div>
+    </div>
+
+    <!-- TUESDAY -->
+    <div class="day" style="--accent:var(--upper)">
+      <div class="day-top">
+        <div>
+          <div class="day-id">Tue — 02</div>
+          <div class="focus">Upper / Core A</div>
+        </div>
+        <svg class="dial" width="52" height="52" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="28" fill="none" stroke="var(--line)" stroke-width="4"/>
+          <circle cx="32" cy="32" r="28" fill="none" stroke="var(--upper)" stroke-width="4" stroke-linecap="round"
+            stroke-dasharray="117.3 175.9" transform="rotate(-90 32 32)"/>
+          <text x="32" y="30" font-size="13" text-anchor="middle" font-weight="600">40</text>
+          <text x="32" y="41" font-size="8" text-anchor="middle" fill="var(--ink-faint)">MIN</text>
+        </svg>
+      </div>
+
+      <div>
+        <div class="block-label">Warm-up — 5 min</div>
+        <div class="list">
+          <div class="row"><div class="row-main"><span class="row-name">Arm circles, fwd + back</span><span class="row-val">15 ea.</span></div><div class="vid-col"><a class="vid" href="https://youtu.be/a80txuVC00M" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Shoulder rolls</span><span class="row-val">x10</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/LgPCO6RIH3Q" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Cat-cow</span><span class="row-val">x8</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/FyCuSE3mDcc" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Push-up plus</span><span class="row-val">x10</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/Jpd24buw2IE" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div>
+        <div class="block-label">Main</div>
+        <div class="list">
+          <div class="row"><div class="row-main"><span class="row-name">Push-ups</span><span class="row-val">3x10-15</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/pKZ-lkKKMws" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Pike push-ups</span><span class="row-val">3x8-10</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/eG20L9cl81w" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Chair / bench dips</span><span class="row-val">3x10-12</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/4ua3MzaU0QU" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Plank, front + side</span><span class="row-val">3x30-45s ea</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/v25dawSzRTM" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Superman hold</span><span class="row-val">3x30s</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/eKB5rv5c7FQ" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div>
+        <div class="block-label">Stretch — 6-8 min</div>
+        <div class="list">
+          <div class="row stretch"><div class="row-main"><span class="row-name">Doorway chest / shoulder</span><span class="row-val">30-45s x2</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/O8rJw_TmC1Y" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row stretch"><div class="row-main"><span class="row-name">Overhead triceps</span><span class="row-val">30-45s x2</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/_IOHtPSYGbk" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row stretch"><div class="row-main"><span class="row-name">Lat stretch</span><span class="row-val">30-45s x2</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/-d4m26gtZtw" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row stretch"><div class="row-main"><span class="row-name">Seated spinal twist</span><span class="row-val">30-45s x2</span></div><div class="vid-col"><a class="vid" href="https://youtu.be/iEKgyR0PTzo" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+        </div>
+      </div>
+
+      <div class="day-total"><span>Total</span><b>~36–43 min</b></div>
+    </div>
+
+    <!-- WEDNESDAY -->
+    <div class="day" style="--accent:var(--mobility)">
+      <div class="day-top">
+        <div>
+          <div class="day-id">Wed — 03</div>
+          <div class="focus">Mobility + Light Legs</div>
+        </div>
+        <svg class="dial" width="52" height="52" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="28" fill="none" stroke="var(--line)" stroke-width="4"/>
+          <circle cx="32" cy="32" r="28" fill="none" stroke="var(--mobility)" stroke-width="4" stroke-linecap="round"
+            stroke-dasharray="88.0 175.9" transform="rotate(-90 32 32)"/>
+          <text x="32" y="30" font-size="13" text-anchor="middle" font-weight="600">30</text>
+          <text x="32" y="41" font-size="8" text-anchor="middle" fill="var(--ink-faint)">MIN</text>
+        </svg>
+      </div>
+
+      <div>
+        <div class="block-label">Dedicated Session — Joint Prep Doubles as Warm-up</div>
+        <div class="list">
+          <div class="seg-label"><span>Joint prep</span><span>3 min</span></div>
+          <div class="row"><div class="row-main"><span class="row-name">Ankle circles</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/pPHkOXX-4GA" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Hip circles</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/PZFKu9583Ms" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Shoulder circles</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/UVU2WfPoZeg" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Neck rolls</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/ErB655NUEMA" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+
+          <div class="seg-label"><span>Dynamic flow</span><span>5 min</span></div>
+          <div class="row"><div class="row-main"><span class="row-name">Cat-cow</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/FyCuSE3mDcc" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">World's greatest stretch</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/7XheaZERvBQ" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Leg swings, front + side</span></div><div class="vid-col"><a class="vid" href="https://youtu.be/naW8u72lOzI" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+
+          <div class="seg-label"><span>Hip opener series</span><span>6 min</span></div>
+          <div class="row"><div class="row-main"><span class="row-name">Deep squat hold</span><span class="row-val">60 sec</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/M6Boq3Zr3oU" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Pigeon pose</span><span class="row-val">45s/side</span></div><div class="vid-col"><a class="vid" href="https://youtu.be/1o7awuDGzag" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Figure-4 stretch</span><span class="row-val">45s/side</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/nj1-GzbAauI" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+
+          <div class="seg-label"><span>Spine + upper mobility</span><span>4 min</span></div>
+          <div class="row"><div class="row-main"><span class="row-name">Thoracic rotations</span></div><div class="vid-col"><a class="vid" href="https://youtu.be/QWwiOHexU8I" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Child's pose</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/dRAibO71JCM" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Standing side bends</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/H5bjGU7hUeA" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+
+          <div class="seg-label"><span>Light legs</span><span>5-6 min</span></div>
+          <div class="row"><div class="row-main"><span class="row-name">Slow-tempo squats</span><span class="row-val">2x12</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/ynGMRGkozU4" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Single-leg glute bridge</span><span class="row-val">2x12/leg</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/n1IZ168x2Bw" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+
+          <div class="seg-label"><span>Static holds — lower body</span><span>5 min</span></div>
+          <div class="row"><div class="row-main"><span class="row-name">Hamstring stretch</span><span class="row-val">45s/leg</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/Oic0YR6HW-o" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Standing quad stretch</span><span class="row-val">45s/leg</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/aNXGOpP37CY" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Calf stretch</span><span class="row-val">45s/leg</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/7SO6QzfBRaE" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+        </div>
+      </div>
+
+      <div class="day-total"><span>Total</span><b>~28–33 min</b></div>
+    </div>
+
+    <!-- THURSDAY -->
+    <div class="day" style="--accent:var(--upper)">
+      <div class="day-top">
+        <div>
+          <div class="day-id">Thu — 04</div>
+          <div class="focus">Upper / Core B</div>
+        </div>
+        <svg class="dial" width="52" height="52" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="28" fill="none" stroke="var(--line)" stroke-width="4"/>
+          <circle cx="32" cy="32" r="28" fill="none" stroke="var(--upper)" stroke-width="4" stroke-linecap="round"
+            stroke-dasharray="117.3 175.9" transform="rotate(-90 32 32)"/>
+          <text x="32" y="30" font-size="13" text-anchor="middle" font-weight="600">40</text>
+          <text x="32" y="41" font-size="8" text-anchor="middle" fill="var(--ink-faint)">MIN</text>
+        </svg>
+      </div>
+
+      <div>
+        <div class="block-label">Warm-up — 5 min</div>
+        <div class="list">
+          <div class="row"><div class="row-main"><span class="row-name">Arm circles, fwd + back</span><span class="row-val">15 ea.</span></div><div class="vid-col"><a class="vid" href="https://youtu.be/a80txuVC00M" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Shoulder rolls</span><span class="row-val">x10</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/LgPCO6RIH3Q" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Cat-cow</span><span class="row-val">x8</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/FyCuSE3mDcc" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Push-up plus</span><span class="row-val">x10</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/Jpd24buw2IE" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div>
+        <div class="block-label">Main</div>
+        <div class="list">
+          <div class="row"><div class="row-main"><span class="row-name">Wide push-ups</span><span class="row-val">3x10-15</span></div><div class="vid-col"><a class="vid" href="https://youtu.be/UFa702F5WnY" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Chair / bench dips</span><span class="row-val">3x10-12</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/4ua3MzaU0QU" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Side plank, reach-through</span><span class="row-val">3x8-10/side</span></div><div class="vid-col"><a class="vid" href="https://youtu.be/-ruAdV34H54" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Bird-dog</span><span class="row-val">3x10/side</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/knsOPG88idk" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Slow bicycle crunches</span><span class="row-val">3x15-20</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/cFDS2S6Vqis" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div>
+        <div class="block-label">Stretch — 6-8 min</div>
+        <div class="list">
+          <div class="row stretch"><div class="row-main"><span class="row-name">Doorway chest / shoulder</span><span class="row-val">30-45s x2</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/O8rJw_TmC1Y" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row stretch"><div class="row-main"><span class="row-name">Overhead triceps</span><span class="row-val">30-45s x2</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/_IOHtPSYGbk" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row stretch"><div class="row-main"><span class="row-name">Lat stretch</span><span class="row-val">30-45s x2</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/-d4m26gtZtw" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row stretch"><div class="row-main"><span class="row-name">Seated spinal twist</span><span class="row-val">30-45s x2</span></div><div class="vid-col"><a class="vid" href="https://youtu.be/iEKgyR0PTzo" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+        </div>
+      </div>
+
+      <div class="day-total"><span>Total</span><b>~36–43 min</b></div>
+    </div>
+
+    <!-- FRIDAY -->
+    <div class="day" style="--accent:var(--legs)">
+      <div class="day-top">
+        <div>
+          <div class="day-id">Fri — 05</div>
+          <div class="focus">Legs B</div>
+        </div>
+        <svg class="dial" width="52" height="52" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="28" fill="none" stroke="var(--line)" stroke-width="4"/>
+          <circle cx="32" cy="32" r="28" fill="none" stroke="var(--legs)" stroke-width="4" stroke-linecap="round"
+            stroke-dasharray="131.9 175.9" transform="rotate(-90 32 32)"/>
+          <text x="32" y="30" font-size="13" text-anchor="middle" font-weight="600">45</text>
+          <text x="32" y="41" font-size="8" text-anchor="middle" fill="var(--ink-faint)">MIN</text>
+        </svg>
+      </div>
+
+      <div>
+        <div class="block-label">Warm-up — 5 min</div>
+        <div class="list">
+          <div class="row"><div class="row-main"><span class="row-name">March in place / high knees</span><span class="row-val">1 min</span></div><div class="vid-col"><a class="vid" href="https://youtu.be/XrOxOD913yM" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Leg swings, front + side</span><span class="row-val">10/leg</span></div><div class="vid-col"><a class="vid" href="https://youtu.be/naW8u72lOzI" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Hip circles</span><span class="row-val">10 ea. dir.</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/PZFKu9583Ms" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Bodyweight squats</span><span class="row-val">x10</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/I7Nk1RMtcLs" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Glute bridges</span><span class="row-val">x10</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/RrU4zx4ysnI" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div>
+        <div class="block-label">Main</div>
+        <div class="list">
+          <div class="row"><div class="row-main"><span class="row-name">Pistol squat progression</span><span class="row-val">3x5-8/leg</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/bH3mRwnAN88" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Nordic curls</span><span class="row-val">3x5-8 eccentric</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/GzxNzNRy9T0" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Cossack squats</span><span class="row-val">3x10/leg</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/MJvazUpmdZU" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Step-ups, slow</span><span class="row-val">3x12/leg</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/R8W8DA4jqvI" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row"><div class="row-main"><span class="row-name">Curtsy lunges</span><span class="row-val">3x10-12/leg</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/WAW-2ehQ1GM" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div>
+        <div class="block-label">Stretch — 6-8 min</div>
+        <div class="list">
+          <div class="row stretch"><div class="row-main"><span class="row-name">Standing quad</span><span class="row-val">30-45s x2</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/aNXGOpP37CY" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row stretch"><div class="row-main"><span class="row-name">Hamstring stretch</span><span class="row-val">30-45s x2</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/Oic0YR6HW-o" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row stretch"><div class="row-main"><span class="row-name">Hip flexor lunge</span><span class="row-val">30-45s x2</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/7lGIfjasuNo" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row stretch"><div class="row-main"><span class="row-name">Pigeon pose</span><span class="row-val">30-45s x2</span></div><div class="vid-col"><a class="vid" href="https://youtu.be/1o7awuDGzag" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+          <div class="row stretch"><div class="row-main"><span class="row-name">Calf stretch</span><span class="row-val">30-45s x2</span></div><div class="vid-col"><a class="vid" href="https://www.youtube.com/shorts/7SO6QzfBRaE" target="_blank" rel="noopener" aria-label="Watch video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a></div></div>
+        </div>
+      </div>
+
+      <div class="day-total"><span>Total</span><b>~41–48 min</b></div>
+    </div>
+
+  </div>
+
+  <div class="weekend">
+    <div class="rest-card">
+      <div>
+        <div class="day-id">Sat — 06</div>
+        <div class="focus">Rest</div>
+      </div>
+    </div>
+    <div class="rest-card">
+      <div>
+        <div class="day-id">Sun — 07</div>
+        <div class="focus">Rest</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <div class="note">
+      <h3>Frequency</h3>
+      <p>Legs trained 3x/week (Mon full, Wed light, Fri full) — enough frequency for continued growth without overlap fatigue. Upper body sits at 2x/week, kept at maintenance.</p>
+    </div>
+    <div class="note">
+      <h3>Spacing</h3>
+      <p>No two full leg sessions land back-to-back: Mon → Tue upper → Wed light touch → Thu upper → Fri full → full weekend rest.</p>
+    </div>
+    <div class="note">
+      <h3>Progression</h3>
+      <p>Once a rep range feels easy, add a loaded backpack or slow the eccentric further (5-6s down) — intensity without added noise.</p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
